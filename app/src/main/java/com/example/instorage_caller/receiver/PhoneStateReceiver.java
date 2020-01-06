@@ -5,37 +5,53 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.instorage_caller.R;
 import com.example.instorage_caller.activity.PopUpActivity;
+import com.example.instorage_caller.roomdb.AppDatabase;
+import com.example.instorage_caller.roomdb.CustomerInfo;
+
+import java.util.List;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static android.content.Context.WINDOW_SERVICE;
 
 public class PhoneStateReceiver extends BroadcastReceiver {
 
+    private CustomerInfo customerInfo;
     private boolean isAlreadyShown = false;
+    String phoneNumber = "";
+    private AppDatabase appDatabase;
+    private Context mContext;
     @Override
     public void onReceive(Context context, Intent intent) {
 
         try {
 
+
+            appDatabase = AppDatabase.getDatabase(context);
+            mContext = context;
             TelephonyManager telephony = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
             telephony.listen(new PhoneStateListener(){
                 @Override
                 public void onCallStateChanged(int state, String incomingNumber) {
                     super.onCallStateChanged(state, incomingNumber);
                     System.out.println("incomingNumber : "+incomingNumber);
+                    phoneNumber = incomingNumber;
                 }
             }, PhoneStateListener.LISTEN_CALL_STATE);
 
@@ -45,10 +61,14 @@ public class PhoneStateReceiver extends BroadcastReceiver {
 
                 Toast.makeText(context,"Ringing State Number is -",Toast.LENGTH_SHORT).show();
 
-                if(!isAlreadyShown){
+                /*if(!isAlreadyShown){
                     isAlreadyShown = true;
                     showPopUp(context);
-                }
+                }*/
+
+                new getCustomer().execute();
+
+
             }
             if ((state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK))){
                 isAlreadyShown = false;
@@ -91,7 +111,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
         wm.addView(ly, params);
     }*/
 
-    private void showPopUp(Context context){
+    private void showPopUp(Context context, CustomerInfo customerInfo){
 
         int LAYOUT_FLAG;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -100,7 +120,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
         }
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-               500,
+                WindowManager.LayoutParams.WRAP_CONTENT,
                400,
                 LAYOUT_FLAG,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
@@ -110,8 +130,6 @@ public class PhoneStateReceiver extends BroadcastReceiver {
                 PixelFormat.TRANSLUCENT);
 
         params.gravity = Gravity.CENTER;
-
-
         WindowManager wm = (WindowManager) context.getSystemService(WINDOW_SERVICE);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         View myView = inflater.inflate(R.layout.caller_dialog, null);
@@ -124,7 +142,45 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             }
         });
 
+        TextView customerName = myView.findViewById(R.id.txtCustomerName);
+        customerName.setText(customerInfo.getName());
+
         // Add layout to window manager
         wm.addView(myView, params);
+    }
+
+
+    private class getCustomer extends AsyncTask<Void, Void, Void> {
+
+
+        @Override
+        protected void onPreExecute() {
+
+
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+
+            try {
+                showPopUp(mContext,customerInfo);
+                super.onPostExecute(result);
+            } catch (Exception ex) {
+
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+
+                customerInfo = appDatabase.customerDao().getCustomerByPhoneNo(phoneNumber);
+                return null;
+            } catch (Exception ex) {
+                return null;
+            }
+        }
+
     }
 }

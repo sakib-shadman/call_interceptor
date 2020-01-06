@@ -1,21 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="300dp"
-    android:layout_height="200dp"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="150dp"
     android:background="@drawable/bg_white_box_round"
-    android:gravity="center">
+    android:layout_margin="10dp"
+   >
 
-    <TextView
-        android:layout_width="wrap_content"
+
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="InStorage Caller"
-        android:textColor="@color/colorAccent"
-        />
+        android:orientation="horizontal"
+        android:background="@color/colorPrimary"
+        android:padding="10dp">
 
 
-    <Button
-        android:id="@+id/close_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Close"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Instorage Caller"
+            android:textColor="@color/textColorWhite"
+            android:layout_centerVertical="true"
+            />
+
+
+        <Button
+            android:background="@drawable/bg_white_box_round"
+            android:id="@+id/close_btn"
+            android:layout_width="100dp"
+            android:layout_height="30dp"
+            android:text="Close"
+            android:textColor="@color/colorPrimary"
+            android:textAllCaps="false"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/textColorWhite"
+        android:padding="10dp"
+        >
+
+        <TextView
+            android:id="@+id/txtCustomerName"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Faisal Islam"
+            android:textColor="@color/textColorBlack"
+            android:textSize="14sp"
+            />
+
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="10dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/star" />
+
+        <TextView
+            android:id="@+id/txtCustomerInfo"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lidingo > Entréplan > 9 kvm > 1102"
+            android:textColor="@color/textColorBlack"
+            android:layout_centerVertical="true"
+            android:textSize="12sp"
+            android:layout_alignParentBottom="true"
+            />
+    </RelativeLayout>
+
+
 </LinearLayout>
