@@ -22,10 +22,13 @@ public interface CustomerDao {
     void addAllCustomer(List<CustomerInfo> customerInfo);
 
     @Update
-    void updateCustomer(CustomerInfo customerInfo);
+    void updateCustomer(List<CustomerInfo> customerInfo);
 
     @Query ("select * from customer_info where formatted_number =:phoneNumber")
     CustomerInfo getCustomerByPhoneNo(String phoneNumber);
+
+    @Query ("select * from customer_info where id =:id")
+    CustomerInfo getCustomerByCustomerId(Integer id);
 
     @Query("select * from customer_info")
     List<CustomerInfo> getAllCustomer();

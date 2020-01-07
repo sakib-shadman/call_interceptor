@@ -1,6 +1,7 @@
 package com.example.instorage_caller.retrofit.repository;
 
 import com.example.instorage_caller.retrofit.apiinterface.ApiInterface;
+import com.example.instorage_caller.retrofit.model.SyncRequest;
 import com.example.instorage_caller.retrofit.model.SyncResponse;
 
 import java.util.List;
@@ -17,5 +18,10 @@ public class ServiceRepository {
 
     public Single<SyncResponse> getAllData(Integer pageNumber){
         return apiInterface.getAllData(pageNumber);
+    }
+
+
+    public Single<SyncResponse> getNewData(SyncRequest syncRequest){
+        return apiInterface.getNewData(syncRequest);
     }
 }

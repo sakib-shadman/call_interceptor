@@ -21,12 +21,18 @@ import com.example.instorage_caller.retrofit.ApiClient;
 import com.example.instorage_caller.retrofit.apiinterface.ApiInterface;
 import com.example.instorage_caller.retrofit.model.Booking;
 import com.example.instorage_caller.retrofit.model.Customer;
+import com.example.instorage_caller.retrofit.model.Options;
+import com.example.instorage_caller.retrofit.model.SyncInfo;
+import com.example.instorage_caller.retrofit.model.SyncRequest;
 import com.example.instorage_caller.retrofit.model.SyncResponse;
 import com.example.instorage_caller.retrofit.repository.ServiceRepository;
 import com.example.instorage_caller.roomdb.AppDatabase;
 import com.example.instorage_caller.roomdb.CustomerInfo;
+import com.example.instorage_caller.util.SaveInformationUtil;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.ButterKnife;
@@ -43,10 +49,11 @@ public class MainActivity extends AppCompatActivity {
     CompositeDisposable compositeDisposable;
     ServiceRepository serviceRepository;
     LoadingDialog mLoadingDialog;
-    private AppDatabase appDatabase;
     List<Customer> mCustomer = new ArrayList<>();
-    Integer mPageNumber = 1,mLastPageNumber = 0;
+    List<Customer> mNewCustomer = new ArrayList<>();
+    Integer mPageNumber = 1, mLastPageNumber = 0;
     List<CustomerInfo> customerInfos = new ArrayList<>();
+    private AppDatabase appDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,12 +174,12 @@ public class MainActivity extends AppCompatActivity {
 
         ActivityCompat.requestPermissions(this,
                 new String[]{
-                       /* Manifest.permission.ACCESS_NETWORK_STATE,
-                        Manifest.permission.INTERNET,*/
+                        /* Manifest.permission.ACCESS_NETWORK_STATE,
+                         Manifest.permission.INTERNET,*/
                         Manifest.permission.READ_CONTACTS,
                         Manifest.permission.WRITE_CONTACTS,
-                       /* Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,*/
+                        /* Manifest.permission.READ_EXTERNAL_STORAGE,
+                         Manifest.permission.WRITE_EXTERNAL_STORAGE,*/
                         Manifest.permission.READ_CALL_LOG,
                         Manifest.permission.WRITE_CALL_LOG,
                         Manifest.permission.READ_PHONE_STATE,
@@ -218,14 +225,59 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.btnLoadAllData)
     public void onClickSync() {
 
-        getAllData(22);
+        SyncInfo syncInfo = new SyncInfo();
+        syncInfo.setTime(getCurrentDateTime());
+        SaveInformationUtil.saveSyncInfo(this, syncInfo);
+        getAllData(1);
     }
 
     @OnClick(R.id.btnGetData)
-    public void onCLickGetData(){
-        new getCustomer().execute();
+    public void onCLickGetData() {
+
+        SyncInfo syncInfo = SaveInformationUtil.getSyncInfo(this);
+        if (syncInfo != null && syncInfo.getTime() != null) {
+            SyncRequest syncRequest = new SyncRequest();
+            syncRequest.setTime(syncInfo.getTime());
+            Options options = new Options();
+            options.setOnlyNew(true);
+            syncRequest.setOptions(options);
+
+            getNewData(syncRequest);
+        }
+
+
+        //new getCustomer().execute();
+
+
     }
 
+    private void getNewData(SyncRequest syncRequest) {
+        mLoadingDialog.showDialogWithText("Syncing data...");
+        compositeDisposable.add(serviceRepository.getNewData(syncRequest).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableSingleObserver<SyncResponse>() {
+                    @Override
+                    public void onSuccess(SyncResponse syncResponse) {
+                        mLoadingDialog.dismiss();
+                        if(syncResponse != null){
+                            if(syncResponse.getData() != null && !syncResponse.getData().isEmpty()){
+                                if(!mNewCustomer.isEmpty()){
+                                    mNewCustomer.clear();
+                                }
+
+                                mNewCustomer.addAll(syncResponse.getData());
+                                processNewData();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                        mLoadingDialog.dismiss();
+                    }
+                })
+        );
+    }
 
     private void getAllData(Integer pageNumber) {
 
@@ -237,28 +289,29 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(SyncResponse syncResponses) {
 
                         mLoadingDialog.dismiss();
-                        if(syncResponses != null){
-                            if(syncResponses.getData() != null){
+                        if (syncResponses != null) {
+                            if (syncResponses.getData() != null) {
 
-                                if(!mCustomer.isEmpty()){
+                                if (!mCustomer.isEmpty()) {
                                     mCustomer.clear();
                                 }
                                 mCustomer.addAll(syncResponses.getData());
                                 processData();
                             }
 
-                            /*if(mPageNumber == 1){
-                                if(syncResponses.getMeta() != null){
-                                    if(syncResponses.getMeta().getLastPage() != null){
+                            if (mPageNumber == 1) {
+                                if (syncResponses.getMeta() != null) {
+                                    if (syncResponses.getMeta().getLastPage() != null) {
                                         mLastPageNumber = syncResponses.getMeta().getLastPage();
                                     }
                                 }
                             }
 
                             mPageNumber = pageNumber;
-                            if(mPageNumber < mLastPageNumber){
-                                getAllData(mPageNumber++);
-                            }*/
+                            if (mPageNumber < mLastPageNumber) {
+                                mPageNumber = mPageNumber + 1;
+                                getAllData(mPageNumber);
+                            }
 
                         }
                     }
@@ -272,10 +325,11 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    private void processData(){
+
+    private void processData() {
 
 
-        for(int i=0 ;i<mCustomer.size(); i++){
+        for (int i = 0; i < mCustomer.size(); i++) {
             CustomerInfo customerInfo = new CustomerInfo();
             customerInfo.setId(mCustomer.get(i).getId());
             customerInfo.setName(mCustomer.get(i).getName());
@@ -288,7 +342,7 @@ public class MainActivity extends AppCompatActivity {
             customerInfo.setStatus(mCustomer.get(i).getStatus());
             customerInfo.setType(mCustomer.get(i).getType());
 
-            if(mCustomer.get(i).getBooking() != null){
+            if (mCustomer.get(i).getBooking() != null) {
                 Booking booking = new Booking();
                 booking.setActive(mCustomer.get(i).getBooking().getActive());
                 booking.setSpaceSize(mCustomer.get(i).getBooking().getSpaceSize());
@@ -307,6 +361,17 @@ public class MainActivity extends AppCompatActivity {
         new insertUser().execute();
     }
 
+    private void processNewData(){
+
+        List<CustomerInfo> updateList = new ArrayList<>();
+        List<CustomerInfo> insertList = new ArrayList<>();
+
+        mCustomer.addAll(mNewCustomer);
+        processData();
+
+
+    }
+
    /* private void insertCustomer() {
 
         CustomerInfo customerInfo = new CustomerInfo();
@@ -323,6 +388,19 @@ public class MainActivity extends AppCompatActivity {
         customerInfo.setBooking(booking);
         new insertUser().execute(customerInfo);
     }*/
+
+    private String getCurrentDateTime() {
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String currentDateandTime = sdf.format(new Date());
+            return currentDateandTime;
+        } catch (Exception ex) {
+            return "";
+
+        }
+
+    }
 
     private class insertUser extends AsyncTask<Void, Void, Void> {
 
@@ -376,7 +454,7 @@ public class MainActivity extends AppCompatActivity {
         protected Void doInBackground(Void... params) {
             try {
                 List<CustomerInfo> userList = appDatabase.customerDao().getAllCustomer();
-                Log.println(Log.INFO,"Customer List->>>>>",userList.toString());
+                Log.println(Log.INFO, "Customer List->>>>>", userList.toString());
                 return null;
             } catch (Exception ex) {
                 return null;

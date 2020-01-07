@@ -37,6 +37,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
     String phoneNumber = "";
     private AppDatabase appDatabase;
     private Context mContext;
+    private boolean isAlreadyFetched = false;
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -45,15 +46,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
 
             appDatabase = AppDatabase.getDatabase(context);
             mContext = context;
-            TelephonyManager telephony = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
-            telephony.listen(new PhoneStateListener(){
-                @Override
-                public void onCallStateChanged(int state, String incomingNumber) {
-                    super.onCallStateChanged(state, incomingNumber);
-                    System.out.println("incomingNumber : "+incomingNumber);
-                    phoneNumber = incomingNumber;
-                }
-            }, PhoneStateListener.LISTEN_CALL_STATE);
+
 
             String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
             System.out.println("Receiver start");
@@ -61,12 +54,29 @@ public class PhoneStateReceiver extends BroadcastReceiver {
 
                 Toast.makeText(context,"Ringing State Number is -",Toast.LENGTH_SHORT).show();
 
+
+                TelephonyManager telephony = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+
+                telephony.listen(new PhoneStateListener(){
+                    @Override
+                    public void onCallStateChanged(int state, String incomingNumber) {
+                        super.onCallStateChanged(state, incomingNumber);
+                        //System.out.println("incomingNumber : "+incomingNumber);
+                        phoneNumber = incomingNumber;
+                        if(!phoneNumber.isEmpty() && !isAlreadyFetched){
+                            new getCustomer().execute();
+                        }
+                        System.out.println("incomingNumber inside listener: "+phoneNumber);
+                    }
+
+                }, PhoneStateListener.LISTEN_CALL_STATE);
+                System.out.println("incomingNumber outside listener: "+phoneNumber);
                 /*if(!isAlreadyShown){
                     isAlreadyShown = true;
                     showPopUp(context);
                 }*/
 
-                new getCustomer().execute();
+
 
 
             }
@@ -143,7 +153,27 @@ public class PhoneStateReceiver extends BroadcastReceiver {
         });
 
         TextView customerName = myView.findViewById(R.id.txtCustomerName);
-        customerName.setText(customerInfo.getName());
+        TextView customerInfoView = myView.findViewById(R.id.txtCustomerInfo);
+        TextView customerActive = myView.findViewById(R.id.txtCustomerActive);
+        if(customerInfo != null){
+            customerName.setText(customerInfo.getName());
+            if(customerInfo.getStatus() != null){
+                customerActive.setText(customerInfo.getStatus());
+            } else {
+                customerActive.setText("Inactive");
+            }
+
+            if(customerInfo.getBooking() != null){
+                String info = customerInfo.getBooking().getStorage()+">"+customerInfo.getBooking().getFloorName()+">"+customerInfo.getBooking().getUnitName();
+                customerInfoView.setText(info);
+            } else {
+                customerInfoView.setText("No info available");
+            }
+        } else {
+            customerName.setText("Un-known");
+            customerInfoView.setText("No info available");
+        }
+
 
         // Add layout to window manager
         wm.addView(myView, params);
@@ -176,6 +206,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             try {
 
                 customerInfo = appDatabase.customerDao().getCustomerByPhoneNo(phoneNumber);
+                isAlreadyFetched = true;
                 return null;
             } catch (Exception ex) {
                 return null;
