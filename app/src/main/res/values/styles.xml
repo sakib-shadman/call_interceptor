@@ -11,6 +11,16 @@
     </style>
 
 
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">true</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+
     <style name="GPlusProgressBar" parent="SmoothProgressBar">
         <item name="spb_stroke_separator_length">12dp</item>
         <item name="spb_sections_count">4</item>

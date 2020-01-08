@@ -12,10 +12,15 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.instorage_caller.adapter.CustomerInfoAdapter;
 import com.example.instorage_caller.dialog.LoadingDialog;
 import com.example.instorage_caller.retrofit.ApiClient;
 import com.example.instorage_caller.retrofit.apiinterface.ApiInterface;
@@ -34,7 +39,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -54,6 +62,13 @@ public class MainActivity extends AppCompatActivity {
     Integer mPageNumber = 1, mLastPageNumber = 0;
     List<CustomerInfo> customerInfos = new ArrayList<>();
     private AppDatabase appDatabase;
+    CustomerInfoAdapter mAdapter;
+    @BindView(R.id.customerRecyclerView)
+    RecyclerView customerRecyclerView;
+    @BindView(R.id.btnLoadAllData)
+    Button btnLoadAllData;
+
+    List<CustomerInfo> customerInfosToShow = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +77,17 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         if (!checkPermissionGranted()) {
             askForPermission();
+        } else {
+
         }
+
         init();
+        initializeRecyclerView();
+        if (isDataLoaded()){
+
+            new getCustomer().execute();
+        }
+
     }
 
     private void init() {
@@ -72,6 +96,41 @@ public class MainActivity extends AppCompatActivity {
         serviceRepository = new ServiceRepository(ApiClient.getClient().create(ApiInterface.class));
         appDatabase = AppDatabase.getDatabase(this);
 
+    }
+
+
+    private void initializeRecyclerView() {
+
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
+        customerRecyclerView.setLayoutManager(mLayoutManager);
+        mAdapter = new CustomerInfoAdapter(new ArrayList<CustomerInfo>(),this);
+        customerRecyclerView.setAdapter(mAdapter);
+        customerRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+            }
+        });
+
+
+    }
+
+    private boolean isDataLoaded(){
+
+        SyncInfo syncInfo = SaveInformationUtil.getSyncInfo(this);
+        if(syncInfo == null){
+            btnLoadAllData.setText("Load All");
+            return false;
+        } else if(syncInfo != null && syncInfo.getTime() != null && !syncInfo.getTime().isEmpty()){
+            btnLoadAllData.setText("Reload All");
+            return true;
+        }
+        return false;
     }
 
     private void showPopUp() {
@@ -228,7 +287,13 @@ public class MainActivity extends AppCompatActivity {
         SyncInfo syncInfo = new SyncInfo();
         syncInfo.setTime(getCurrentDateTime());
         SaveInformationUtil.saveSyncInfo(this, syncInfo);
-        getAllData(1);
+        if(btnLoadAllData.getText().toString().contains("Reload")){
+            new deleteAllFromCustomerTable().execute();
+        }  else {
+            getAllData(1);
+        }
+
+
     }
 
     @OnClick(R.id.btnGetData)
@@ -281,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void getAllData(Integer pageNumber) {
 
-        mLoadingDialog.show();
+        mLoadingDialog.showDialogWithText("Loading All Data");
         compositeDisposable.add(serviceRepository.getAllData(pageNumber).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableSingleObserver<SyncResponse>() {
 
@@ -311,6 +376,9 @@ public class MainActivity extends AppCompatActivity {
                             if (mPageNumber < mLastPageNumber) {
                                 mPageNumber = mPageNumber + 1;
                                 getAllData(mPageNumber);
+                            } else {
+                                btnLoadAllData.setText("Reload All");
+                                new getCustomer().execute();
                             }
 
                         }
@@ -323,6 +391,17 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
         );
+    }
+
+    private void showDataIntoView() {
+
+        int first = 0;
+        int last = 50;
+        int size = customerInfosToShow.size();
+        mAdapter.updateDataSet(customerInfosToShow);
+
+
+
     }
 
 
@@ -357,7 +436,6 @@ public class MainActivity extends AppCompatActivity {
             customerInfos.add(customerInfo);
 
         }
-
         new insertUser().execute();
     }
 
@@ -369,6 +447,13 @@ public class MainActivity extends AppCompatActivity {
         mCustomer.addAll(mNewCustomer);
         processData();
 
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // this code will be executed after 2 seconds
+                new getCustomer().execute();
+            }
+        }, 2000);
 
     }
 
@@ -432,11 +517,10 @@ public class MainActivity extends AppCompatActivity {
 
     private class getCustomer extends AsyncTask<Void, Void, Void> {
 
-
+        LoadingDialog loadingDialog = new LoadingDialog(MainActivity.this,"Preparing view...");
         @Override
         protected void onPreExecute() {
-
-
+            loadingDialog.show();
             super.onPreExecute();
         }
 
@@ -444,6 +528,8 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void result) {
 
             try {
+                loadingDialog.dismiss();
+                showDataIntoView();
                 super.onPostExecute(result);
             } catch (Exception ex) {
 
@@ -453,8 +539,40 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                List<CustomerInfo> userList = appDatabase.customerDao().getAllCustomer();
-                Log.println(Log.INFO, "Customer List->>>>>", userList.toString());
+                customerInfosToShow = appDatabase.customerDao().getAllCustomer();
+                 Log.println(Log.INFO, "Customer List->>>>>", customerInfosToShow.size()+"");
+                return null;
+            } catch (Exception ex) {
+                return null;
+            }
+        }
+
+    }
+
+
+    private class deleteAllFromCustomerTable extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+
+            try {
+                getAllData(1);
+                super.onPostExecute(result);
+            } catch (Exception ex) {
+
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+
+                appDatabase.customerDao().deleteAllData();
                 return null;
             } catch (Exception ex) {
                 return null;

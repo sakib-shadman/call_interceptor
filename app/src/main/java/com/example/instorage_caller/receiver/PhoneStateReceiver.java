@@ -16,9 +16,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
 
 import com.example.instorage_caller.R;
 import com.example.instorage_caller.activity.PopUpActivity;
@@ -38,15 +41,18 @@ public class PhoneStateReceiver extends BroadcastReceiver {
     private AppDatabase appDatabase;
     private Context mContext;
     private boolean isAlreadyFetched = false;
+    WindowManager wm;
+    View myView;
+    private int count = 0;
     @Override
     public void onReceive(Context context, Intent intent) {
 
         try {
 
-
             appDatabase = AppDatabase.getDatabase(context);
             mContext = context;
-
+            count = count+1;
+            System.out.println("Count------>"+count);
 
             String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
             System.out.println("Receiver start");
@@ -65,6 +71,10 @@ public class PhoneStateReceiver extends BroadcastReceiver {
                         phoneNumber = incomingNumber;
                         if(!phoneNumber.isEmpty() && !isAlreadyFetched){
                             new getCustomer().execute();
+
+                            /*Intent i = new Intent(context,PopUpActivity.class);
+                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            context.startActivity(i);*/
                         }
                         System.out.println("incomingNumber inside listener: "+phoneNumber);
                     }
@@ -87,6 +97,8 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)){
                 isAlreadyShown = false;
                 Toast.makeText(context,"Idle State",Toast.LENGTH_SHORT).show();
+                System.out.println("idle state");
+                removePopUp(wm,myView);
             }
            // Toast.makeText(context," Receiver start ", Toast.LENGTH_SHORT).show();
         }
@@ -140,9 +152,9 @@ public class PhoneStateReceiver extends BroadcastReceiver {
                 PixelFormat.TRANSLUCENT);
 
         params.gravity = Gravity.CENTER;
-        WindowManager wm = (WindowManager) context.getSystemService(WINDOW_SERVICE);
+        wm = (WindowManager) context.getSystemService(WINDOW_SERVICE);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
-        View myView = inflater.inflate(R.layout.caller_dialog, null);
+        myView = inflater.inflate(R.layout.caller_dialog, null);
         Button button = myView.findViewById(R.id.close_btn);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -155,12 +167,22 @@ public class PhoneStateReceiver extends BroadcastReceiver {
         TextView customerName = myView.findViewById(R.id.txtCustomerName);
         TextView customerInfoView = myView.findViewById(R.id.txtCustomerInfo);
         TextView customerActive = myView.findViewById(R.id.txtCustomerActive);
+        ImageView imgStatus = myView.findViewById(R.id.imgStatus);
         if(customerInfo != null){
             customerName.setText(customerInfo.getName());
             if(customerInfo.getStatus() != null){
                 customerActive.setText(customerInfo.getStatus());
+                if(customerInfo.getStatus().equalsIgnoreCase("active")){
+                    customerActive.setTextColor(ContextCompat.getColor(context,R.color.color_active));
+                    imgStatus.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_active));
+                } else {
+                    customerActive.setTextColor(ContextCompat.getColor(context,R.color.color_inactive));
+                    imgStatus.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_inactive));
+                }
             } else {
                 customerActive.setText("Inactive");
+                customerActive.setTextColor(ContextCompat.getColor(context,R.color.color_inactive));
+                imgStatus.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_inactive));
             }
 
             if(customerInfo.getBooking() != null){
@@ -177,6 +199,15 @@ public class PhoneStateReceiver extends BroadcastReceiver {
 
         // Add layout to window manager
         wm.addView(myView, params);
+    }
+
+    private void removePopUp(WindowManager wm,View view){
+
+        if(wm != null && view != null){
+            wm.removeView(view);
+            Log.i("Remove view","View removed");
+        }
+
     }
 
 

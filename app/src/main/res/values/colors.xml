@@ -5,7 +5,10 @@
     <color name="colorAccent">#D81B60</color>
     <color name="textColorWhite">#ffffff</color>
     <color name="textColorBlack">#000000</color>
-
+    <color name="color_active">#1BBC9B</color>
+    <color name="color_inactive">#F26D7D</color>
+    <color name="view_underline_light_gray">#e7e7e7</color>
+    <color name="colorBackground">#FFFFFF</color>
 
     <integer-array name="gplus_colors">
         <item>@color/textColorWhite</item>

@@ -32,4 +32,7 @@ public interface CustomerDao {
 
     @Query("select * from customer_info")
     List<CustomerInfo> getAllCustomer();
+
+    @Query("delete from customer_info")
+    void deleteAllData();
 }

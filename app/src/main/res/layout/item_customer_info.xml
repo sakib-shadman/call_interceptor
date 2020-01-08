@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="5dp"
+    android:elevation="10dp"
+    app:cardCornerRadius="5dp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:text="Customer Name : "
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp" />
+
+
+            <ImageView
+                android:id="@+id/imgStatus"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginRight="10dp"
+                android:layout_toLeftOf="@+id/txtCustomerActive"
+                tools:background="@drawable/ic_active" />
+
+            <TextView
+                android:id="@+id/txtCustomerActive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="0dp"
+                android:layout_marginRight="5dp"
+                android:text="Active"
+                android:textColor="@color/textColorBlack"
+                android:textSize="12sp" />
+
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/txtCustomerName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="5dp"
+            android:text="Shadman Sakib"
+            android:textColor="@color/textColorBlack"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1"
+                android:text="Customer Phone : "
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp" />
+
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1"
+                android:text="Customer Email : "
+                android:textColor="@color/colorPrimary"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <TextView
+                android:id="@+id/txtCustomerPhone"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="0705410263"
+                android:textColor="@color/textColorBlack"
+                android:textSize="14sp" />
+
+
+            <TextView
+                android:id="@+id/txtCustomerEmail"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="fred@hemlangtangruppen.se"
+                android:textColor="@color/textColorBlack"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Customer Address : "
+            android:textColor="@color/colorPrimary"
+            android:textSize="12sp" />
+
+
+        <TextView
+            android:id="@+id/txtCustomerAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:text="Gåshagavägen 26, 18167, Lidingö"
+            android:textColor="@color/textColorBlack"
+            android:textSize="12sp" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="5dp"
+            android:text="Booking Info : "
+            android:textColor="@color/textColorBlack"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="5dp"
+            android:background="@color/view_underline_light_gray" />
+
+        <TextView
+            android:id="@+id/txtCustomerInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="0dp"
+            android:text="Lidingo > Entréplan > 9 kvm > 1102"
+            android:textColor="@color/textColorBlack"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
