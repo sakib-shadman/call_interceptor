@@ -45,6 +45,7 @@ import java.util.TimerTask;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableSingleObserver;
@@ -67,7 +68,8 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView customerRecyclerView;
     @BindView(R.id.btnLoadAllData)
     Button btnLoadAllData;
-
+    @BindView(R.id.smo_loding_dialog_progress_bar)
+    SmoothProgressBar mProgressBar;
     List<CustomerInfo> customerInfosToShow = new ArrayList<>();
 
     @Override
@@ -288,8 +290,10 @@ public class MainActivity extends AppCompatActivity {
         syncInfo.setTime(getCurrentDateTime());
         SaveInformationUtil.saveSyncInfo(this, syncInfo);
         if(btnLoadAllData.getText().toString().contains("Reload")){
+            mProgressBar.setVisibility(View.VISIBLE);
             new deleteAllFromCustomerTable().execute();
         }  else {
+            mProgressBar.setVisibility(View.VISIBLE);
             getAllData(1);
         }
 
@@ -346,14 +350,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void getAllData(Integer pageNumber) {
 
-        mLoadingDialog.showDialogWithText("Loading All Data");
+       // mLoadingDialog.showDialogWithText("Loading All Data");
         compositeDisposable.add(serviceRepository.getAllData(pageNumber).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableSingleObserver<SyncResponse>() {
 
                     @Override
                     public void onSuccess(SyncResponse syncResponses) {
 
-                        mLoadingDialog.dismiss();
+                        //mLoadingDialog.dismiss();
                         if (syncResponses != null) {
                             if (syncResponses.getData() != null) {
 
@@ -377,6 +381,7 @@ public class MainActivity extends AppCompatActivity {
                                 mPageNumber = mPageNumber + 1;
                                 getAllData(mPageNumber);
                             } else {
+                                mProgressBar.setVisibility(View.GONE);
                                 btnLoadAllData.setText("Reload All");
                                 new getCustomer().execute();
                             }
@@ -387,7 +392,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onError(Throwable e) {
 
-                        mLoadingDialog.dismiss();
+                        //mLoadingDialog.dismiss();
+                        mProgressBar.setVisibility(View.GONE);
                     }
                 })
         );

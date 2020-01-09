@@ -58,7 +58,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             System.out.println("Receiver start");
             if(state.equals(TelephonyManager.EXTRA_STATE_RINGING)){
 
-                Toast.makeText(context,"Ringing State Number is -",Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context,"Ringing State Number is -",Toast.LENGTH_SHORT).show();
 
 
                 TelephonyManager telephony = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -92,11 +92,11 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             }
             if ((state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK))){
                 isAlreadyShown = false;
-                Toast.makeText(context,"Received State",Toast.LENGTH_SHORT).show();
+               // Toast.makeText(context,"Received State",Toast.LENGTH_SHORT).show();
             }
             if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)){
                 isAlreadyShown = false;
-                Toast.makeText(context,"Idle State",Toast.LENGTH_SHORT).show();
+               // Toast.makeText(context,"Idle State",Toast.LENGTH_SHORT).show();
                 System.out.println("idle state");
                 removePopUp(wm,myView);
             }
