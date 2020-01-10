@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 public class SaveInformationUtil {
 
     public static final String USER_INFORMATION_CONSTANT = "syncinformation";
+    public static final String RECEIVER_INFORMATION_CONSTANT = "receiverformation";
 
     public static void saveSyncInfo(Context context, SyncInfo syncInfo){
 
@@ -52,6 +53,51 @@ public class SaveInformationUtil {
             SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences( context);
             SharedPreferences.Editor prefsEditor = mPrefs.edit();
             prefsEditor.remove(USER_INFORMATION_CONSTANT);
+            prefsEditor.commit();
+        } catch (Exception ex){
+
+        }
+
+    }
+
+
+    public static void saveReceiverInfo(Context context, ReceiverInfo receiverInfo){
+
+        try {
+
+            SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences (context);
+            SharedPreferences.Editor prefsEditor = mPrefs.edit ();
+            Gson gson = new Gson ();
+            String json = gson.toJson (receiverInfo);
+            prefsEditor.putString (RECEIVER_INFORMATION_CONSTANT, json);
+            prefsEditor.commit ();
+        } catch (Exception ex){
+
+        }
+    }
+
+    public static ReceiverInfo getReceiverInfo(Context context){
+
+        try {
+            SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences( context);
+            Gson gson = new Gson();
+            String json = mPrefs.getString(RECEIVER_INFORMATION_CONSTANT, "");
+            if (json != null && json.length() > 1  ){
+                return  gson.fromJson(json, ReceiverInfo.class);
+            }
+            return null ;
+        } catch (Exception ex){
+            return null;
+        }
+
+    }
+
+    public static void clearReceiverInfo(Context context){
+
+        try{
+            SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences( context);
+            SharedPreferences.Editor prefsEditor = mPrefs.edit();
+            prefsEditor.remove(RECEIVER_INFORMATION_CONSTANT);
             prefsEditor.commit();
         } catch (Exception ex){
 

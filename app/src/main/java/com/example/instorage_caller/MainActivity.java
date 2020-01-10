@@ -1,11 +1,14 @@
 package com.example.instorage_caller;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -83,11 +86,22 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        if (!Settings.canDrawOverlays(this)) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, 0);
+        }
+
         init();
         initializeRecyclerView();
         if (isDataLoaded()){
 
             new getCustomer().execute();
+        } else {
+            SyncInfo syncInfo = new SyncInfo();
+            syncInfo.setTime(getCurrentDateTime());
+            SaveInformationUtil.saveSyncInfo(this, syncInfo);
+            mProgressBar.setVisibility(View.VISIBLE);
+            getAllData(1);
         }
 
     }

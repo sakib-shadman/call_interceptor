@@ -28,7 +28,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
 
-    public static final String BASE_URL = "http://staging.instorage.se:8080/api/"; //live server https
+    public static final String BASE_URL_STAGE = "http://staging.instorage.se:8080/api/"; //live server https
+    public static final String BASE_URL_PROD = "https://api.instorage.se//api/"; //live server https
 
 
     private static Retrofit retrofit = null;
@@ -59,7 +60,7 @@ public class ApiClient {
                     .create ();
 
             retrofit = new Retrofit.Builder ()
-                    .baseUrl (BASE_URL)
+                    .baseUrl (BASE_URL_PROD)
                     .addConverterFactory (GsonConverterFactory.create (gson))
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .client (httpClient.build ())

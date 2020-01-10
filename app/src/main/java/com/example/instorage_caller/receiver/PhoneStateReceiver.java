@@ -27,6 +27,8 @@ import com.example.instorage_caller.R;
 import com.example.instorage_caller.activity.PopUpActivity;
 import com.example.instorage_caller.roomdb.AppDatabase;
 import com.example.instorage_caller.roomdb.CustomerInfo;
+import com.example.instorage_caller.util.ReceiverInfo;
+import com.example.instorage_caller.util.SaveInformationUtil;
 
 import java.util.List;
 
@@ -44,6 +46,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
     WindowManager wm;
     View myView;
     private int count = 0;
+    private boolean isAlreadyFired = false;
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -69,7 +72,15 @@ public class PhoneStateReceiver extends BroadcastReceiver {
                         super.onCallStateChanged(state, incomingNumber);
                         //System.out.println("incomingNumber : "+incomingNumber);
                         phoneNumber = incomingNumber;
-                        if(!phoneNumber.isEmpty() && !isAlreadyFetched){
+                        ReceiverInfo receiverInfo = SaveInformationUtil.getReceiverInfo(context);
+                        if(receiverInfo != null){
+                            isAlreadyFired = receiverInfo.isAlreadyFired();
+                        }
+                        if(!phoneNumber.isEmpty() && !isAlreadyFetched && !isAlreadyFired){
+                            isAlreadyFired = true;
+                            ReceiverInfo receiverInfo1 = new ReceiverInfo();
+                            receiverInfo1.setAlreadyFired(true);
+                            SaveInformationUtil.saveReceiverInfo(context,receiverInfo1);
                             new getCustomer().execute();
 
                             /*Intent i = new Intent(context,PopUpActivity.class);
@@ -92,10 +103,18 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             }
             if ((state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK))){
                 isAlreadyShown = false;
+                isAlreadyFired = false;
+                ReceiverInfo receiverInfo1 = new ReceiverInfo();
+                receiverInfo1.setAlreadyFired(false);
+                SaveInformationUtil.saveReceiverInfo(context,receiverInfo1);
                // Toast.makeText(context,"Received State",Toast.LENGTH_SHORT).show();
             }
             if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)){
                 isAlreadyShown = false;
+                isAlreadyFired = false;
+                ReceiverInfo receiverInfo1 = new ReceiverInfo();
+                receiverInfo1.setAlreadyFired(false);
+                SaveInformationUtil.saveReceiverInfo(context,receiverInfo1);
                // Toast.makeText(context,"Idle State",Toast.LENGTH_SHORT).show();
                 System.out.println("idle state");
                 removePopUp(wm,myView);

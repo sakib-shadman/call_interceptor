@@ -30,7 +30,7 @@ public interface CustomerDao {
     @Query ("select * from customer_info where id =:id")
     CustomerInfo getCustomerByCustomerId(Integer id);
 
-    @Query("select * from customer_info")
+    @Query("select * from customer_info order by id desc")
     List<CustomerInfo> getAllCustomer();
 
     @Query("delete from customer_info")
